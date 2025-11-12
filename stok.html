@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stok Bahan Ajar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="css/style.css" rel="stylesheet">    
+</head>
+<body>
+    <div id="app">
+        <!-- NAVBAR -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="index.html">
+                    <img src="https://upload.wikimedia.org/wikipedia/id/c/c3/Logo_Universitas_Terbuka.svg" alt="Logo UT" class="me-2 img-fluid">
+                    Dashboard
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item"><a class="nav-link text-primary" href="">Informasi Bahan Ajar</a></li>
+                        <li class="nav-item"><a class="nav-link" href="tracking.html">Tracking Pengiriman</a></li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Laporan
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="#">Laporan Stok</a></li>
+                                <li><a class="dropdown-item" href="#">Laporan Penjualan</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item"><a class="nav-link" href="#">Histori Transaksi Bahan Ajar</a></li>
+                    </ul>
+                    <a href="logout.html"><button class="btn btn-primary ms-3">Keluar</button></a>
+                </div>
+            </div>
+        </nav>
+        <!-- SELESAI NAVBAR -->
+
+        <div class="container-fluid pt-5"> 
+            <h2 class="mb-4 text-primary">Informasi Stok Bahan Ajar</h2>            
+            <div class="card mb-4 p-3 bg-light">
+                <h5 class="card-title text-secondary">Filter & Sort Data</h5>
+                <div class="row g-3 align-items-end">
+                    
+                    <div class="col-md-3">
+                        <label for="filterDaerah" class="form-label">UT-Daerah</label>
+                        <select id="filterDaerah" class="form-select form-select-sm" v-model="filters.upbjj">
+                            <option value="">-- Semua UT-Daerah --</option>
+                            <option v-for="daerah in upbjjList" :key="daerah" :value="daerah">{{ daerah }}</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3" v-if="filters.upbjj">
+                        <label for="filterKategori" class="form-label">Kategori MK</label>
+                        <select id="filterKategori" class="form-select form-select-sm" v-model="filters.kategori">
+                            <option value="">-- Semua Kategori --</option>
+                            <option v-for="kategori in kategoriList" :key="kategori" :value="kategori">{{ kategori }}</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label" style="display: block;">Status Stok</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="lowStock" v-model="filters.lowStock">
+                            <label class="form-check-label" for="lowStock">Stok &lt; Safety Stock</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="emptyStock" v-model="filters.emptyStock">
+                            <label class="form-check-label" for="emptyStock">Stok = 0</label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label for="sortBy" class="form-label">Urutkan Berdasarkan</label>
+                        <select id="sortBy" class="form-select form-select-sm" v-model="sort.key">
+                            <option value="judul">Judul</option>
+                            <option value="qty">Stok</option>
+                            <option value="harga">Harga</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label for="sortDir" class="form-label">Urutkan</label>
+                        <select id="sortDir" class="form-select form-select-sm" v-model="sort.direction">
+                            <option value="asc">A-Z/Kecil ke Besar</option>
+                            <option value="desc">Z-A/Besar ke Kecil</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-auto">
+                        <button class="btn btn-secondary btn-sm" @click="resetFilters">Reset Filter</button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- TOMBOL TAMBAH BAHAN AJAR -->
+            <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#tambahDataModal" @click="resetNewItemForm">Tambah Bahan Ajar</button>
+            <!-- END -->
+
+            <!-- TABEL STOK BAHAN AJAR-->
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-bordered table-sm">
+                    <thead class="table-primary text-center">
+                        <tr>
+                            <th>No</th> 
+                            <th>Kode/Nama Mata Kuliah</th>
+                            <th>Kategori</th>
+                            <th>UT-Daerah</th>
+                            <th>Lokasi Rak</th>
+                            <th>Stok (Qty)</th>
+                            <th>Safety Stock</th>
+                            <th>Status</th>
+                            <th>Catatan</th>
+                            <th>Action</th> 
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item, index) in sortedAndFilteredStok" :key="item.kode">
+                            <td class="text-center">{{ index + 1 }}</td> 
+                            <td><b>{{ item.kode }}</b><br>{{ item.judul }}</td>
+                            <td>{{ item.kategori }}</td>
+                            <td>UPBJJ {{ item.upbjj }}</td>
+                            <td class="text-center">{{ item.lokasiRak }}</td>
+                            <td class="text-center" :class="{'table-danger': item.qty < item.safety || item.qty === 0, 'fw-bold': item.qty < item.safety}">
+                                {{ item.qty }}
+                            </td>
+                            <td class="text-center">{{ item.safety }}</td>
+                            <td>
+                                <span v-if="item.qty < item.safety && item.qty > 0" class="badge bg-warning text-dark">Menipis</span>
+                                <span v-if="item.qty === 0" class="badge bg-danger">Kosong</span>
+                                <span v-else-if="item.qty >= item.safety" class="badge bg-success">Aman</span>
+                            </td>
+                            <td v-html="item.catatanHTML"></td> 
+                            <td>
+                                <div class="d-grid gap-1 d-sm-block">
+                                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editDataModal" @click="editStokItem(item)">Edit</button>
+                                    <button 
+                                        class="btn btn-info btn-sm" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#detailDataModal" 
+                                        @click="showDetail(item)">
+                                        Detail
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr v-if="sortedAndFilteredStok.length === 0">
+                            <td colspan="10" class="text-center text-muted">Tidak ditemukan data stok yang cocok dengan filter</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- SELESAI TABEL STOK BA -->
+
+        </div>
+    </div>
+
+    <!-- MODAL BOX -->
+    <div class="modal fade" id="tambahDataModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="tambahDataModalLabel">Tambah Bahan Ajar</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form @submit.prevent="addNewStokItem">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="kode" class="form-label">Kode MK</label>
+                                <input type="text" class="form-control" id="kode" v-model="newItem.kode" required>
+                            </div>
+                            <div class="col-md-8">
+                                <label for="judul" class="form-label">Judul Mata Kuliah</label>
+                                <input type="text" class="form-control" id="judul" v-model="newItem.judul" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="kategori" class="form-label">Kategori</label>
+                                <select id="kategori" class="form-select" v-model="newItem.kategori" required>
+                                    <option value="" disabled>Pilih Kategori</option>
+                                    <option value="MK Wajib">MK Wajib</option>
+                                    <option value="MK Pilihan">MK Pilihan</option>
+                                    <option value="Praktikum">Praktikum</option>
+                                    <option value="Problem-Based">Problem-Based</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="upbjj" class="form-label">UT-Daerah (UPBJJ)</label>
+                                <select id="upbjj" class="form-select" v-model="newItem.upbjj" required>
+                                    <option value="" disabled>Pilih UT-Daerah</option>
+                                    <option value="Jakarta">Jakarta</option>
+                                    <option value="Surabaya">Surabaya</option>
+                                    <option value="Makassar">Makassar</option>
+                                    <option value="Padang">Padang</option>
+                                    <option value="Denpasar">Denpasar</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="lokasiRak" class="form-label">Lokasi Rak</label>
+                                <input type="text" class="form-control" id="lokasiRak" v-model="newItem.lokasiRak" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="harga" class="form-label">Harga (Rp)</label>
+                                <input type="number" class="form-control" id="harga" v-model.number="newItem.harga" min="0" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="qty" class="form-label">Stok Awal (Qty)</label>
+                                <input type="number" class="form-control" id="qty" v-model.number="newItem.qty" min="0" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="safety" class="form-label">Safety Stock</label>
+                                <input type="number" class="form-control" id="safety" v-model.number="newItem.safety" min="0" required>
+                            </div>
+                            <div class="col-md-12">
+                                <label for="catatanHTML" class="form-label">Catatan (HTML diperbolehkan)</label>
+                                <textarea class="form-control" id="catatanHTML" v-model="newItem.catatanHTML" rows="2"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer mt-4">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Tambahkan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="editDataModal" tabindex="-1" aria-labelledby="editDataModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="editDataModalLabel">Edit Bahan Ajar</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body" v-if="editingItem">
+                    <form @submit.prevent="saveEditStokItem">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="editKode" class="form-label">Kode MK</label>
+                                <input type="text" class="form-control" id="editKode" :value="editingItem.kode" value="BIOL4201" disabled>
+                            </div>
+                            <div class="col-md-8">
+                                <label for="editJudul" class="form-label">Judul Mata Kuliah</label>
+                                <input type="text" class="form-control" id="editJudul" v-model="editingItem.judul" value="Biologi Umum (Praktikum)" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="kategori" class="form-label">Kategori</label>
+                                <select id="kategori" class="form-select" v-model="newItem.kategori" required>
+                                    <option value="" disabled>Pilih Kategori</option>
+                                    <option value="MK Wajib">MK Wajib</option>
+                                    <option value="MK Pilihan">MK Pilihan</option>
+                                    <option value="Praktikum">Praktikum</option>
+                                    <option value="Problem-Based">Problem-Based</option>
+                                </select>
+                            </div>                            
+                            <div class="col-md-4">
+                                <label for="upbjj" class="form-label">UT-Daerah (UPBJJ)</label>
+                                <select id="upbjj" class="form-select" v-model="newItem.upbjj" required>
+                                    <option value="" disabled>Pilih UT-Daerah</option>
+                                    <option value="Jakarta">Jakarta</option>
+                                    <option value="Surabaya">Surabaya</option>
+                                    <option value="Makassar">Makassar</option>
+                                    <option value="Padang">Padang</option>
+                                    <option value="Denpasar">Denpasar</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editLokasiRak" class="form-label">Lokasi Rak</label>
+                                <input type="text" class="form-control" id="editLokasiRak" v-model="editingItem.lokasiRak" value="R3-B2" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="editHarga" class="form-label">Harga (Rp)</label>
+                                <input type="number" class="form-control" id="editHarga" v-model.number="editingItem.harga" min="0" value="80.000" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="editQty" class="form-label">Stok Saat Ini (Qty)</label>
+                                <input type="number" class="form-control" id="editQty" v-model.number="editingItem.qty" min="0" value="12" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="editSafety" class="form-label">Safety Stock</label>
+                                <input type="number" class="form-control" id="editSafety" v-model.number="editingItem.safety" min="0" value="10" required>
+                            </div>
+                            <div class="col-md-12">
+                                <label for="editCatatanHTML" class="form-label">Catatan (HTML diperbolehkan)</label>
+                                <textarea class="form-control" id="editCatatanHTML" v-model="editingItem.catatanHTML" rows="2">Butuh <u>pendingin</u> untuk kit basah</textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer mt-4">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-warning">Simpan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="detailDataModal" tabindex="-1" aria-labelledby="detailDataModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="detailDataModalLabel">Detail Bahan Ajar: BIOL4201</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" v-if="detailItem">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <div class="row">
+                                <div class="col-4 text-muted">Nama Mata Kuliah</div>
+                                <div class="col-8"><b>Biologi Umum (Praktikum)</b></div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="row">
+                                <div class="col-4 text-muted">Kategori</div>
+                                <div class="col-8">Praktikum</div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="row">
+                                <div class="col-4 text-muted">UPBJJ</div>
+                                <div class="col-8">Surabaya</div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="row">
+                                <div class="col-4 text-muted">Lokasi Rak</div>
+                                <div class="col-8">R3-B2</div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="row">
+                                <div class="col-4 text-muted">Harga</div>
+                                <div class="col-8">Rp 80.000</div>
+                            </div>
+                        </li>
+                        <li class="list-group-item" :class="{'bg-warning': detailItem.qty < detailItem.safety && detailItem.qty > 0, 'bg-danger text-white': detailItem.qty === 0}">
+                            <div class="row">
+                                <div class="col-4 text-muted">Stok Saat Ini</div>
+                                <div class="col-8"><b>10</b> (Safety: 12)</div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="row">
+                                <div class="col-4 text-muted">Catatan</div>
+                                <div class="col-8" v-html="detailItem.catatanHTML">Butuh <u>pendingin</u> untuk kit basah</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- SELESAI MODAL BOX -->
+
+    <!-- BOOTSTRAP SCRIPT -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Vue.js SCRIPT -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+    <script src="js/stok-app.js"></script>
+    <!-- SELESAI -->
+
+</body>
+</html>
