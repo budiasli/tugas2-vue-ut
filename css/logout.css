@@ -1,0 +1,111 @@
+        /* BASE & GENERAL STYLES */
+        body {
+            background-color: #f0f2f5;
+            /* Di halaman logout, padding-top tidak diperlukan */
+        }
+        
+        /* Navbar & Header (Hanya untuk referensi, tidak digunakan di halaman ini) */
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .navbar-brand img {
+            height: 30px;
+        }
+
+        /* Dashboard Cards (Hanya untuk referensi, tidak digunakan di halaman ini) */
+        .dashboard-card {
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .dashboard-card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 10px;
+        }
+        .card-value, 
+        .dashboard-card .total-number {
+            font-size: 3em;
+            font-weight: bold;
+            line-height: 1;
+        }
+        .card-value {
+            text-align: right;
+        }
+        .bg-green, .card-green {
+            background-color: #28a745 !important;
+            color: white;
+        }
+        .bg-blue-teal, .card-blue {
+            background-color: #17a2b8 !important;
+            color: white;
+        }
+        .bg-yellow-orange, .card-yellow {
+            background-color: #ffc107 !important;
+            color: black;
+        }
+
+        /* Tracking.html (Hanya untuk referensi, tidak digunakan di halaman ini) */
+        .timeline-item {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 15px;
+            border-left: 2px solid #e9ecef; 
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            background-color: #007bff;
+            border: 3px solid white;
+            border-radius: 50%;
+            z-index: 1;
+            box-shadow: 0 0 0 3px #e9ecef;
+        }
+        .timeline-time {
+            font-size: 0.9em;
+            color: #6c757d;
+            display: block;
+        }
+        .detail-label {
+            font-weight: bold;
+            width: 150px;
+            color: #495057;
+        }
+
+        /* --- LOGOUT.HTML STYLES --- */
+        
+        /* logout-container hanya mengatur background, layout diatur oleh class Bootstrap (vh-100, d-flex, etc.) */
+        .logout-container {
+            background-color: #f8f9fa;
+        }
+
+        .logout-box {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        /* Gaya untuk Animasi Emoji */
+        .wave-emoji {
+            display: inline-block;
+            transform-origin: 75% 75%;
+            animation: wave 2.5s infinite;
+        }
+
+        @keyframes wave {
+            0% { transform: rotate(0deg); }
+            10% { transform: rotate(14deg); }
+            20% { transform: rotate(-8deg); }
+            30% { transform: rotate(14deg); }
+            40% { transform: rotate(-4deg); }
+            50% { transform: rotate(10deg); }
+            60% { transform: rotate(0deg); }
+            100% { transform: rotate(0deg); }
+        }
